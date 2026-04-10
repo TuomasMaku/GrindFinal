@@ -247,7 +247,10 @@ function openWeightModal(exName, exSets, key){
   weightModalKey    = key;
   setTxt('weightModalTitle', exName);
   setTxt('weightModalSets', exSets);
-  const entries = chargesData[exName] || [];
+  Data[exName] || [];const _rd = store.get('chargesResetDate', null);
+const _ae = chargesData[exName] || [];
+const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
+
   const histEl  = document.getElementById('weightHistory');
   if(histEl){
     if(entries.length === 0){
@@ -707,7 +710,10 @@ if (prBoardEl) {
   const keyLifts = ['Développé couché barre','Développé couché haltères','Squat barre','Romanian deadlift','Tractions lestées','Rowing barre','Développé militaire'];
   const ordered = [...keyLifts.filter(n=>exNames.includes(n)), ...exNames.filter(n=>!keyLifts.includes(n))];
   ordered.forEach(name=>{
-    const entries = chargesData[name]; if(!entries||!entries.length) return;
+    const _rd = store.get('chargesResetDate', null);
+const _ae = chargesData[exName] || [];
+const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
+ if(!entries||!entries.length) return;
     const sorted = entries.slice().sort((a,b)=>a.date.localeCompare(b.date));
     const maxKg = Math.max(...sorted.map(e=>e.kg));
     const last = sorted[sorted.length-1];
