@@ -406,7 +406,10 @@ days.forEach((day,i)=>{
     </div>`;
   card.querySelectorAll('.ex-row').forEach(row=>{ if(progState[row.dataset.key]) row.classList.add('done'); });
   card.querySelectorAll('.ex-kg-btn').forEach(btn=>{
-    const entries = chargesData[btn.dataset.exname] || [];
+    const _rd = store.get('chargesResetDate', null);
+const _ae = chargesData[btn.dataset.exname] || [];
+const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
+
     if(entries.length){ const last=entries[entries.length-1]; btn.textContent=last.kg+'kg'; btn.classList.add('has-data'); }
   });
   card.querySelector('.day-header').addEventListener('click',()=>{
