@@ -262,8 +262,8 @@ function openWeightModal(exName, exSets, key){
   const repsInput = document.getElementById('weightReps');
   if(entries.length){
     const last = entries[entries.length-1];
-    if(kgInput)   kgInput.value   = last.kg;
-    if(repsInput) repsInput.value = last.reps;
+    if(kgInput)   kgInput.value   = '';
+    if(repsInput) repsInput.value = '';
   } else {
     if(kgInput)   kgInput.value   = '';
     if(repsInput) repsInput.value = '';
