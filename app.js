@@ -154,12 +154,13 @@ let historyData  = store.get('historyData', []);
 let hardcoreMode = store.get('hardcoreMode', false);
 let rankState    = store.get('rankState', {lastRank:''});
 let chargesData  = store.get('chargesData', {});
+let prChargesData = store.get('prChargesData', {}); // ── PR par exercice — jamais reset
 let sessionNotes = store.get('sessionNotes', {});
 let dayConfirms  = store.get('dayConfirms', {});
 let lastOpenDate = store.get('lastOpenDate', null);
 
 /* ── RUN STATE ── */
-let runHistory = store.get('runHistory', []); // [{date,dist,timeSeconds,pace,zone,note}]
+let runHistory = store.get('runHistory', []);
 
 if(dailyState.date !== todayStr()){
   if(hardcoreMode && dailyState.date && dailyState.reps.some(v=>v>0)){
@@ -246,12 +247,14 @@ function openWeightModal(exName, exSets, key){
   setTxt('weightModalTitle', exName);
   setTxt('weightModalSets', exSets);
   const entries = chargesData[exName] || [];
+  const pr = prChargesData[exName] || null;
   const histEl  = document.getElementById('weightHistory');
   if(histEl){
+    const prBadge = pr ? `<div class="weight-pr-badge">🏆 PR : ${pr.kg}kg × ${pr.reps} <span style="color:#555;font-size:10px">(${pr.date})</span></div>` : '';
     if(entries.length === 0){
-      histEl.innerHTML = '<div class="weight-no-history">Aucune entrée — première fois 💪</div>';
+      histEl.innerHTML = prBadge + '<div class="weight-no-history">Aucune entrée ce cycle — première fois 💪</div>';
     } else {
-      histEl.innerHTML = entries.slice().reverse().slice(0,5).map(e=>`
+      histEl.innerHTML = prBadge + entries.slice().reverse().slice(0,5).map(e=>`
         <div class="weight-hist-row">
           <span class="wh-date">${e.date}</span>
           <span class="wh-val">${e.kg}<span class="wh-unit">kg</span> × ${e.reps}<span class="wh-unit">reps</span></span>
@@ -260,10 +263,14 @@ function openWeightModal(exName, exSets, key){
   }
   const kgInput   = document.getElementById('weightKg');
   const repsInput = document.getElementById('weightReps');
+  // Pré-remplir avec la dernière entrée du cycle OU le PR si cycle reset
   if(entries.length){
     const last = entries[entries.length-1];
     if(kgInput)   kgInput.value   = last.kg;
     if(repsInput) repsInput.value = last.reps;
+  } else if(pr){
+    if(kgInput)   kgInput.value   = pr.kg;
+    if(repsInput) repsInput.value = pr.reps;
   } else {
     if(kgInput)   kgInput.value   = '';
     if(repsInput) repsInput.value = '';
@@ -283,11 +290,21 @@ function saveWeight(){
   const reps = parseInt(document.getElementById('weightReps').value);
   if(isNaN(kg) || kg <= 0){ document.getElementById('weightKg').focus(); return; }
   if(isNaN(reps) || reps <= 0){ document.getElementById('weightReps').focus(); return; }
+
+  // Sauver dans chargesData (cycle courant)
   if(!chargesData[weightModalExName]) chargesData[weightModalExName] = [];
   chargesData[weightModalExName] = chargesData[weightModalExName].filter(e=>e.date!==todayStr());
   chargesData[weightModalExName].push({date:todayStr(), kg, reps});
   if(chargesData[weightModalExName].length > 30) chargesData[weightModalExName].shift();
   store.set('chargesData', chargesData);
+
+  // ── Mise à jour PR si nouveau record ──
+  const currentPr = prChargesData[weightModalExName];
+  if(!currentPr || kg > currentPr.kg){
+    prChargesData[weightModalExName] = {kg, reps, date:todayStr()};
+    store.set('prChargesData', prChargesData);
+  }
+
   const btn = document.querySelector(`.ex-kg-btn[data-key="${weightModalKey}"]`);
   if(btn){ const last = chargesData[weightModalExName].slice(-1)[0]; btn.textContent = last.kg+'kg'; btn.classList.add('has-data'); }
   closeWeightModal();
@@ -665,18 +682,48 @@ function renderStats(){
 
 function renderChargesStats(){
   const el = document.getElementById('chargesStats'); if(!el) return; el.innerHTML='';
-  const exNames = Object.keys(chargesData).filter(n=>chargesData[n].length>0);
-  if(!exNames.length){ el.innerHTML='<div class="history-empty">Aucune charge enregistrée.<br>Tape sur le badge kg dans une séance 💪</div>'; return; }
+
+  // On affiche les PR de tous les exercices connus (cycle actuel + anciens cycles)
+  const allNames = new Set([
+    ...Object.keys(chargesData).filter(n=>chargesData[n].length>0),
+    ...Object.keys(prChargesData)
+  ]);
+
+  if(!allNames.size){ el.innerHTML='<div class="history-empty">Aucune charge enregistrée.<br>Tape sur le badge kg dans une séance 💪</div>'; return; }
+
   const keyLifts = ['Développé couché barre','Développé couché haltères','Squat barre','Romanian deadlift','Tractions lestées','Rowing barre','Développé militaire'];
-  const ordered = [...keyLifts.filter(n=>exNames.includes(n)), ...exNames.filter(n=>!keyLifts.includes(n))];
+  const allNamesArr = [...allNames];
+  const ordered = [...keyLifts.filter(n=>allNamesArr.includes(n)), ...allNamesArr.filter(n=>!keyLifts.includes(n))];
+
   ordered.forEach(name=>{
-    const entries = chargesData[name]; if(!entries||!entries.length) return;
+    const entries = chargesData[name] || [];
+    const pr = prChargesData[name] || null;
+
+    // Si pas d'entrée ce cycle mais un PR existe, on affiche juste le PR
+    if(!entries.length && pr){
+      const row = document.createElement('div'); row.className='charges-row';
+      row.innerHTML=`
+        <div class="charges-name">${name}</div>
+        <div class="charges-body"><div class="charges-bar-wrap"><div class="charges-bar-col" title="PR · ${pr.kg}kg × ${pr.reps}"><div class="charges-bar-fill latest" style="height:100%"></div></div></div></div>
+        <div class="charges-right">
+          <div class="charges-max">${pr.kg}<span class="charges-unit">kg</span></div>
+          <div class="charges-reps">× ${pr.reps} <span class="charge-delta up">🏆 PR</span></div>
+        </div>`;
+      el.appendChild(row);
+      return;
+    }
+
+    if(!entries.length) return;
+
     const sorted = entries.slice().sort((a,b)=>a.date.localeCompare(b.date));
-    const maxKg = Math.max(...sorted.map(e=>e.kg));
+    const maxKg = Math.max(...sorted.map(e=>e.kg), pr ? pr.kg : 0);
     const last = sorted[sorted.length-1];
     const prev = sorted.length>1 ? sorted[sorted.length-2] : null;
     const delta = prev ? last.kg - prev.kg : 0;
     const deltaStr = delta>0 ? `<span class="charge-delta up">+${delta}kg</span>` : delta<0 ? `<span class="charge-delta down">${delta}kg</span>` : '';
+    const isPr = pr && last.kg >= pr.kg;
+    const prStr = isPr ? `<span class="charge-delta up">🏆 PR</span>` : (pr ? `<span style="color:#555;font-size:10px">PR ${pr.kg}kg</span>` : '');
+
     const row = document.createElement('div'); row.className='charges-row';
     row.innerHTML=`
       <div class="charges-name">${name}</div>
@@ -684,7 +731,7 @@ function renderChargesStats(){
         const h = Math.round((e.kg/maxKg)*100); const isLast = idx===sorted.length-1;
         return `<div class="charges-bar-col" title="${e.date} · ${e.kg}kg × ${e.reps}"><div class="charges-bar-fill${isLast?' latest':''}" style="height:${h}%"></div></div>`;
       }).join('')}</div></div>
-      <div class="charges-right"><div class="charges-max">${last.kg}<span class="charges-unit">kg</span></div><div class="charges-reps">× ${last.reps}${deltaStr}</div></div>`;
+      <div class="charges-right"><div class="charges-max">${last.kg}<span class="charges-unit">kg</span></div><div class="charges-reps">× ${last.reps} ${deltaStr} ${prStr}</div></div>`;
     el.appendChild(row);
   });
 }
@@ -712,7 +759,6 @@ function formatDuration(totalSeconds){
   return `${m}:${String(s).padStart(2,'0')}`;
 }
 
-// Live pace preview
 const runDistEl = document.getElementById('runDist');
 const runMinEl  = document.getElementById('runMin');
 const runSecEl  = document.getElementById('runSec');
@@ -737,7 +783,6 @@ runDistEl.addEventListener('input', updatePacePreview);
 runMinEl.addEventListener('input', updatePacePreview);
 runSecEl.addEventListener('input', updatePacePreview);
 
-// Save run
 document.getElementById('runSaveBtn').addEventListener('click', ()=>{
   const dist = parseFloat(runDistEl.value);
   const mins = parseInt(runMinEl.value) || 0;
@@ -763,7 +808,6 @@ document.getElementById('runSaveBtn').addEventListener('click', ()=>{
   if(runHistory.length > 200) runHistory = runHistory.slice(0, 200);
   store.set('runHistory', runHistory);
 
-  // Reset form
   runDistEl.value = '';
   runMinEl.value = '';
   runSecEl.value = '';
@@ -776,7 +820,6 @@ document.getElementById('runSaveBtn').addEventListener('click', ()=>{
   updateHome();
 });
 
-// Delete a run
 function deleteRun(idx){
   runHistory.splice(idx, 1);
   store.set('runHistory', runHistory);
@@ -784,14 +827,12 @@ function deleteRun(idx){
   updateHome();
 }
 
-// Render entire run tab
 function renderRunTab(){
   const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
   const zoneLabels = {z2:'Z2 Easy', tempo:'Tempo', interval:'Interval', long:'Long Run'};
   const zoneCss    = {z2:'rh-zone-z2', tempo:'rh-zone-tempo', interval:'rh-zone-interval', long:'rh-zone-long'};
   const zoneColors = {z2:'var(--green)', tempo:'var(--orange)', interval:'var(--pink)', long:'var(--blue)'};
 
-  // --- Cycle link ---
   const clEl = document.getElementById('runCycleLink');
   const clTxt = document.getElementById('runCycleLinkText');
   if(cycleStart){
@@ -805,7 +846,6 @@ function renderRunTab(){
     } else { clEl.style.display = 'none'; }
   } else { clEl.style.display = 'none'; }
 
-  // --- Run streak (runs this week) ---
   const now = new Date();
   const mondayOffset = (now.getDay() + 6) % 7;
   const monday = new Date(now); monday.setDate(now.getDate() - mondayOffset);
@@ -814,7 +854,6 @@ function renderRunTab(){
   setTxt('runStreakNum', weekRuns);
   setTxt('runStreakSub', weekRuns === 0 ? 'Aucun run cette semaine' : weekRuns === 1 ? '1 run — continue !' : weekRuns + ' runs — belle régularité 🔥');
 
-  // --- Stats ---
   const totalKm = runHistory.reduce((a, r) => a + r.dist, 0);
   const totalRuns = runHistory.length;
   const monthStr = todayStr().slice(0, 7);
@@ -829,7 +868,6 @@ function renderRunTab(){
   setTxt('runStatAvgPace', avgPaceSec > 0 && avgPaceSec < Infinity ? `${Math.floor(avgPaceSec/60)}'${String(Math.round(avgPaceSec%60)).padStart(2,'0')}"` : '—');
   setTxt('runStatBestPace', bestPaceSec > 0 && bestPaceSec < Infinity ? `${Math.floor(bestPaceSec/60)}'${String(Math.round(bestPaceSec%60)).padStart(2,'0')}"` : '—');
 
-  // --- PR Board ---
   const prEl = document.getElementById('prBoard'); prEl.innerHTML = '';
   const prDefs = [
     {name:'Meilleur 5K', icon:'🏅', filter: r=>r.dist>=4.9 && r.dist<=5.5, metric:'pace', unit:'/km'},
@@ -868,7 +906,6 @@ function renderRunTab(){
     prEl.appendChild(card);
   });
 
-  // --- Pace sparkline ---
   const sparkSvg = document.getElementById('runSparkSvg');
   sparkSvg.innerHTML = '';
   const last20 = runHistory.slice(0, 20).reverse().filter(r => r.paceSeconds && r.paceSeconds < Infinity);
@@ -882,7 +919,6 @@ function renderRunTab(){
       const y = pad + ((r.paceSeconds - minP) / range) * (h - pad * 2);
       return {x, y};
     });
-    // Note: lower pace = better, so we invert
     const ptsInv = pts.map(p => ({x: p.x, y: h - p.y}));
     const lineStr = ptsInv.map(p => `${p.x},${p.y}`).join(' ');
     const areaStr = `${ptsInv[0].x},${h} ${lineStr} ${ptsInv[ptsInv.length-1].x},${h}`;
@@ -894,7 +930,6 @@ function renderRunTab(){
     sparkSvg.innerHTML = `<text x="250" y="35" text-anchor="middle" fill="#555" font-size="12" font-family="Barlow Condensed">Min 2 runs pour voir le graph</text>`;
   }
 
-  // --- Zone distribution ---
   const zDistEl = document.getElementById('zoneDistrib'); zDistEl.innerHTML = '';
   const zoneCounts = {z2:0, tempo:0, interval:0, long:0};
   runHistory.forEach(r => { if(zoneCounts[r.zone] !== undefined) zoneCounts[r.zone]++; });
@@ -911,7 +946,6 @@ function renderRunTab(){
     zDistEl.appendChild(item);
   });
 
-  // --- History ---
   const histEl = document.getElementById('runHistoryList'); histEl.innerHTML = '';
   if(runHistory.length === 0){
     histEl.innerHTML = '<div class="history-empty">Aucun run enregistré.<br>Log ton premier run ci-dessus 🏃</div>';
@@ -943,7 +977,6 @@ function renderRunTab(){
   });
 }
 
-// Auto-select zone based on cycle
 function autoSelectRunZone(){
   if(!cycleStart) return;
   const cur = getCurDayIdx();
@@ -955,7 +988,6 @@ function autoSelectRunZone(){
   else if(day.tags.includes('Run')) zoneEl.value = 'z2';
 }
 
-// Reset runs
 document.getElementById('resetRuns').addEventListener('click', () => {
   document.getElementById('modalRunsOverlay').classList.add('show');
 });
@@ -1016,7 +1048,6 @@ function updateHome(){
   setTxt('homeDailyPct', dp+'%');
   setW('homeDailyBar', dp+'%');
 
-  // Run summary on home
   const monthStr = todayStr().slice(0, 7);
   const monthKm = runHistory.filter(r => r.date.startsWith(monthStr)).reduce((a, r) => a + r.dist, 0);
   setTxt('homeRunKm', monthKm.toFixed(1) + ' km');
@@ -1077,8 +1108,13 @@ document.getElementById('modalSkipConfirm').addEventListener('click',()=>{
 
 function doStartCycle(){
   cycleStart=todayStr(); cycleOffset=0; progState={};
+  // ── Reset les kilos du cycle MAIS pas les PR ──
+  chargesData = {};
+  store.set('chargesData', chargesData);
   store.set('cycleStart',cycleStart); store.set('cycleOffset',cycleOffset); store.set('progState',progState);
   document.querySelectorAll('.ex-row.done').forEach(r=>r.classList.remove('done'));
+  // Reset les boutons kg visuellement
+  document.querySelectorAll('.ex-kg-btn').forEach(b=>{ b.textContent='+kg'; b.classList.remove('has-data'); });
   days.forEach((_,i)=>{
     document.getElementById('ring-'+i).style.strokeDashoffset=CIRC;
     document.getElementById('rnum-'+i).textContent=String(i+1).padStart(2,'0');
@@ -1110,11 +1146,12 @@ document.getElementById('modalConfirm').addEventListener('click',()=>{
   progState={}; cycleStart=null;
   dailyState={date:todayStr(), reps:challenges.map(()=>0)};
   streakData={count:0,lastDate:'',best:0};
-  historyData=[]; chargesData={}; sessionNotes={}; dayConfirms={};
+  historyData=[]; chargesData={}; prChargesData={}; sessionNotes={}; dayConfirms={};
   runHistory = [];
   store.set('progState',progState); store.set('cycleStart',cycleStart);
   store.set('dailyState',dailyState); store.set('streakData',streakData);
   store.set('historyData',historyData); store.set('chargesData',chargesData);
+  store.set('prChargesData',prChargesData);
   store.set('sessionNotes',sessionNotes); store.set('dayConfirms',dayConfirms);
   store.set('runHistory', runHistory);
   document.querySelectorAll('.ex-row.done').forEach(r=>r.classList.remove('done'));
@@ -1183,7 +1220,7 @@ const phrases = [
 
 /* ── BACKUP / RESTORE ── */
 function exportData(){
-  const data = { progState, cycleStart, cycleOffset, dailyState, streakData, historyData, chargesData, sessionNotes, dayConfirms, runHistory };
+  const data = { progState, cycleStart, cycleOffset, dailyState, streakData, historyData, chargesData, prChargesData, sessionNotes, dayConfirms, runHistory };
   const json = JSON.stringify(data, null, 2);
   const d = new Date();
   const filename = `training-backup-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
@@ -1215,6 +1252,7 @@ function importData(file){
       });
       if(Array.isArray(data.historyData)) store.set('historyData', data.historyData);
       if(data.chargesData && typeof data.chargesData==='object') store.set('chargesData', data.chargesData);
+      if(data.prChargesData && typeof data.prChargesData==='object') store.set('prChargesData', data.prChargesData);
       if(data.sessionNotes && typeof data.sessionNotes==='object') store.set('sessionNotes', data.sessionNotes);
       if(data.dayConfirms && typeof data.dayConfirms==='object') store.set('dayConfirms', data.dayConfirms);
       if(Array.isArray(data.runHistory)) store.set('runHistory', data.runHistory);
