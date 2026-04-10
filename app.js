@@ -223,9 +223,7 @@ let weightModalExName = '';
 let weightModalKey    = '';
 
 function renderWeightBadge(exName, badgeEl){
-  const _rd = store.get('chargesResetDate', null);
-  const _ae = chargesData[exName] || [];
-  const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
+  const entries = chargesData[exName] || [];
   if(!entries.length){
     badgeEl.textContent='+kg';
     badgeEl.style.color='#444';
@@ -247,10 +245,7 @@ function openWeightModal(exName, exSets, key){
   weightModalKey    = key;
   setTxt('weightModalTitle', exName);
   setTxt('weightModalSets', exSets);
-  Data[exName] || [];const _rd = store.get('chargesResetDate', null);
-const _ae = chargesData[exName] || [];
-const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
-
+  const entries = chargesData[exName] || [];
   const histEl  = document.getElementById('weightHistory');
   if(histEl){
     if(entries.length === 0){
@@ -267,8 +262,8 @@ const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
   const repsInput = document.getElementById('weightReps');
   if(entries.length){
     const last = entries[entries.length-1];
-    if(kgInput)   kgInput.value   = '';
-    if(repsInput) repsInput.value = '';
+    if(kgInput)   kgInput.value   = last.kg;
+    if(repsInput) repsInput.value = last.reps;
   } else {
     if(kgInput)   kgInput.value   = '';
     if(repsInput) repsInput.value = '';
@@ -409,10 +404,7 @@ days.forEach((day,i)=>{
     </div>`;
   card.querySelectorAll('.ex-row').forEach(row=>{ if(progState[row.dataset.key]) row.classList.add('done'); });
   card.querySelectorAll('.ex-kg-btn').forEach(btn=>{
-    const _rd = store.get('chargesResetDate', null);
-const _ae = chargesData[btn.dataset.exname] || [];
-const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
-
+    const entries = chargesData[btn.dataset.exname] || [];
     if(entries.length){ const last=entries[entries.length-1]; btn.textContent=last.kg+'kg'; btn.classList.add('has-data'); }
   });
   card.querySelector('.day-header').addEventListener('click',()=>{
@@ -675,45 +667,10 @@ function renderChargesStats(){
   const el = document.getElementById('chargesStats'); if(!el) return; el.innerHTML='';
   const exNames = Object.keys(chargesData).filter(n=>chargesData[n].length>0);
   if(!exNames.length){ el.innerHTML='<div class="history-empty">Aucune charge enregistrée.<br>Tape sur le badge kg dans une séance 💪</div>'; return; }
-  // ── PR BOARD ──
-const prBoardEl = document.getElementById('prBoard');
-if (prBoardEl) {
-  prBoardEl.innerHTML = '';
-  const ordered = [...['Développé couché barre','Développé couché haltères','Squat barre','Romanian deadlift','Tractions lestées','Rowing barre','Développé militaire'].filter(n=>exNames.includes(n)), ...exNames.filter(n=>!['Développé couché barre','Développé couché haltères','Squat barre','Romanian deadlift','Tractions lestées','Rowing barre','Développé militaire'].includes(n))];
-  ordered.forEach(name => {
-    const all = chargesData[name] || [];
-    if (!all.length) return;
-    const pr = Math.max(...all.map(e => e.kg));
-    const prEntry = all.find(e => e.kg === pr);
-    const last = all[all.length - 1];
-    const isPR = last.kg >= pr;
-    const pct = Math.round((last.kg / pr) * 100);
-    const card = document.createElement('div');
-    card.className = 'pr-card' + (isPR ? ' has-pr' : '');
-    card.innerHTML = `
-      <div class="pr-icon">🏋️</div>
-      <div class="pr-body">
-        <div class="pr-name">${name}</div>
-        <div class="pr-detail">Dernier : ${last.kg} kg · ${last.reps} reps</div>
-        <div style="height:3px;background:var(--border);margin-top:8px;border-radius:2px">
-          <div style="width:${pct}%;height:100%;background:var(--pink);border-radius:2px;transition:width 0.6s"></div>
-        </div>
-      </div>
-      <div class="pr-right">
-        <div class="pr-val">${pr}</div>
-        <div class="pr-date">PR · kg${prEntry ? '<br>' + prEntry.date : ''}</div>
-      </div>`;
-    prBoardEl.appendChild(card);
-  });
-}
-
   const keyLifts = ['Développé couché barre','Développé couché haltères','Squat barre','Romanian deadlift','Tractions lestées','Rowing barre','Développé militaire'];
   const ordered = [...keyLifts.filter(n=>exNames.includes(n)), ...exNames.filter(n=>!keyLifts.includes(n))];
   ordered.forEach(name=>{
-  const _rdC = store.get('chargesResetDate', null);
-  const _aeC = chargesData[name] || [];
-  const entries = _rdC ? _aeC.filter(e => e.date >= _rdC) : _aeC;
-  if(!entries||!entries.length) return;
+    const entries = chargesData[name]; if(!entries||!entries.length) return;
     const sorted = entries.slice().sort((a,b)=>a.date.localeCompare(b.date));
     const maxKg = Math.max(...sorted.map(e=>e.kg));
     const last = sorted[sorted.length-1];
@@ -1119,11 +1076,7 @@ document.getElementById('modalSkipConfirm').addEventListener('click',()=>{
 });
 
 function doStartCycle(){
-  cycleStart=todayStr();store.set('chargesResetDate',cycleStart);
- cycleOffset=0; progState={};
-  // Reset des charges au nouveau cycle
-chargesData = {}
-store.set('chargesData', chargesData)
+  cycleStart=todayStr(); cycleOffset=0; progState={};
   store.set('cycleStart',cycleStart); store.set('cycleOffset',cycleOffset); store.set('progState',progState);
   document.querySelectorAll('.ex-row.done').forEach(r=>r.classList.remove('done'));
   days.forEach((_,i)=>{
