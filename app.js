@@ -223,9 +223,9 @@ let weightModalExName = '';
 let weightModalKey    = '';
 
 function renderWeightBadge(exName, badgeEl){
-  const _resetDate = store.get('chargesResetDate', null);
-const _allEntries = chargesData[exName] || [];
-const entries = _resetDate ? _allEntries.filter(e => e.date >= _resetDate) : _allEntries;
+  const _rd = store.get('chargesResetDate', null);
+  const _ae = chargesData[exName] || [];
+  const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
   if(!entries.length){
     badgeEl.textContent='+kg';
     badgeEl.style.color='#444';
@@ -710,10 +710,10 @@ if (prBoardEl) {
   const keyLifts = ['Développé couché barre','Développé couché haltères','Squat barre','Romanian deadlift','Tractions lestées','Rowing barre','Développé militaire'];
   const ordered = [...keyLifts.filter(n=>exNames.includes(n)), ...exNames.filter(n=>!keyLifts.includes(n))];
   ordered.forEach(name=>{
-    const _rd = store.get('chargesResetDate', null);
-const _ae = chargesData[exName] || [];
-const entries = _rd ? _ae.filter(e => e.date >= _rd) : _ae;
- if(!entries||!entries.length) return;
+  const _rdC = store.get('chargesResetDate', null);
+  const _aeC = chargesData[name] || [];
+  const entries = _rdC ? _aeC.filter(e => e.date >= _rdC) : _aeC;
+  if(!entries||!entries.length) return;
     const sorted = entries.slice().sort((a,b)=>a.date.localeCompare(b.date));
     const maxKg = Math.max(...sorted.map(e=>e.kg));
     const last = sorted[sorted.length-1];
