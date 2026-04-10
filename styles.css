@@ -691,3 +691,10 @@
     text-transform:uppercase; cursor:pointer; transition:all 0.15s;
   }
   .rh-delete:active { background:rgba(255,71,71,0.1); }
+  
+  /* Fix weight modal display */
+#weightModal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
