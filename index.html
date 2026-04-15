@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Training App</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<title>ARENA · Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@300;400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,11 +12,10 @@
 <!-- ══ HOME ══ -->
 <div class="tab-content active" id="tab-home">
   <div class="page">
-    <div class="home-greeting">Bonjour Thomas</div>
+    <div class="home-greeting">ARENA · Training</div>
     <div class="home-title" id="homeTitle">Prêt à<span style="color:var(--accent)">Bosser ?</span></div>
     <div class="home-date" id="homeDate"></div>
 
-    <!-- SMART REST CARD -->
     <div class="smart-rest-card" id="smartRestCard" style="display:none">
       <div class="sr-left">
         <div class="sr-label">⏰ Séance d'hier — t'as fait ?</div>
@@ -61,29 +60,27 @@
       <div class="streak-fire" id="streakFire">🌱</div>
     </div>
 
-    <div class="home-grid">
+    <div class="home-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:2px">
       <div class="home-card" onclick="switchTab('programme')">
         <div class="home-card-label">Cycle</div>
         <div class="home-card-val" id="homeCyclePct">0%</div>
-        <div class="home-card-sub" id="homeCycleSub">Exos complétés</div>
+        <div class="home-card-sub" id="homeCycleSub">Exos</div>
       </div>
       <div class="home-card" onclick="switchTab('defi')">
-        <div class="home-card-label">Daily Grind</div>
+        <div class="home-card-label">Daily</div>
         <div class="home-card-val" id="homeDailyPct">0%</div>
         <div class="home-card-sub">Aujourd'hui</div>
       </div>
-    </div>
-
-    <!-- RUN SUMMARY CARD ON HOME -->
-    <div class="home-card" onclick="switchTab('run')" style="margin-bottom:3px">
-      <div class="home-card-label">🏃 Run</div>
-      <div class="home-card-val" id="homeRunKm">0 km</div>
-      <div class="home-card-sub" id="homeRunSub">Ce mois</div>
+      <div class="home-card" onclick="switchTab('run')">
+        <div class="home-card-label">🏃 Run</div>
+        <div class="home-card-val" id="homeRunKm">0 km</div>
+        <div class="home-card-sub" id="homeRunSub">Ce mois</div>
+      </div>
     </div>
 
     <div class="cycle-card">
       <div class="cycle-top">
-        <span class="cycle-title">Progression cycle 8 jours</span>
+        <span class="cycle-title">Cycle 8 jours</span>
         <span class="cycle-pct" id="cyclePctLabel">Non démarré</span>
       </div>
       <div class="cycle-dots" id="cycleDots"></div>
@@ -112,9 +109,9 @@
       <div class="disc-score" id="discScore">—</div>
     </div>
 
-    <button class="start-cycle-btn" id="startCycleBtn">⟳ Démarrer un nouveau cycle aujourd'hui</button>
+    <button class="start-cycle-btn" id="startCycleBtn">⟳ Démarrer un nouveau cycle</button>
     <button class="skip-btn" id="skipBtn" style="display:none">⏭ Passer à la prochaine séance</button>
-    <button class="reset-btn" id="resetAll" style="margin-top:3px;border-color:#ff4747;color:#ff4747">✕ Tout remettre à zéro</button>
+    <button class="reset-btn" id="resetAll" style="margin-top:3px;border-color:#ff2200;color:#ff2200">✕ Tout remettre à zéro</button>
   </div>
 </div>
 
@@ -147,7 +144,6 @@
       <div class="header-sub">Log · Stats · Records</div>
     </header>
 
-    <!-- Cycle link -->
     <div class="run-cycle-link" id="runCycleLink" style="display:none">
       <div class="rcl-icon">🔗</div>
       <div class="rcl-body">
@@ -156,7 +152,6 @@
       </div>
     </div>
 
-    <!-- Run streak -->
     <div class="run-streak-card">
       <div class="run-streak-num" id="runStreakNum">0</div>
       <div class="run-streak-info">
@@ -165,9 +160,8 @@
       </div>
     </div>
 
-    <!-- Log form -->
     <div class="run-form">
-      <div class="run-form-title">📝 Logger un run</div>
+      <div class="run-form-title">Logger un run</div>
       <div class="run-form-row">
         <div class="run-input-group">
           <div class="run-input-label">Distance</div>
@@ -177,17 +171,17 @@
           </div>
         </div>
         <div class="run-input-group">
-          <div class="run-input-label">Durée (min)</div>
+          <div class="run-input-label">Min</div>
           <div class="run-input-unit-wrap">
             <input type="number" id="runMin" class="run-input" placeholder="30" min="0" step="1" inputmode="numeric">
-            <span class="run-input-unit">min</span>
+            <span class="run-input-unit">m</span>
           </div>
         </div>
         <div class="run-input-group">
           <div class="run-input-label">Sec</div>
           <div class="run-input-unit-wrap">
             <input type="number" id="runSec" class="run-input" placeholder="0" min="0" max="59" step="1" inputmode="numeric">
-            <span class="run-input-unit">sec</span>
+            <span class="run-input-unit">s</span>
           </div>
         </div>
       </div>
@@ -208,65 +202,60 @@
         </div>
       </div>
       <div class="run-input-group" style="margin-bottom:8px">
-        <div class="run-input-label">Note (optionnel)</div>
+        <div class="run-input-label">Note</div>
         <textarea class="run-note-input" id="runNote" placeholder="Ressenti, météo, circuit..."></textarea>
       </div>
       <button class="run-save-btn" id="runSaveBtn">Logger le run 🏃</button>
     </div>
 
-    <!-- PR Board -->
     <div class="section-title">Records personnels</div>
     <div class="pr-board" id="prBoard"></div>
 
-    <!-- Stats -->
     <div class="section-title">Stats globales</div>
     <div class="big-stats">
       <div class="big-stat">
-        <div class="big-stat-val" id="runStatTotalKm" style="color:var(--pink)">0</div>
+        <div class="big-stat-val" id="runStatTotalKm" style="color:var(--run)">0</div>
         <div class="big-stat-label">Km totaux</div>
       </div>
       <div class="big-stat">
-        <div class="big-stat-val" id="runStatTotalRuns" style="color:var(--pink)">0</div>
+        <div class="big-stat-val" id="runStatTotalRuns" style="color:var(--run)">0</div>
         <div class="big-stat-label">Runs</div>
       </div>
     </div>
     <div class="big-stats">
       <div class="big-stat">
-        <div class="big-stat-val" id="runStatAvgPace" style="color:var(--pink)">—</div>
+        <div class="big-stat-val" id="runStatAvgPace" style="color:var(--run)">—</div>
         <div class="big-stat-label">Pace moyen</div>
       </div>
       <div class="big-stat">
-        <div class="big-stat-val" id="runStatBestPace" style="color:var(--pink)">—</div>
+        <div class="big-stat-val" id="runStatBestPace" style="color:var(--run)">—</div>
         <div class="big-stat-label">Meilleur pace</div>
       </div>
     </div>
     <div class="big-stats" style="margin-bottom:0">
       <div class="big-stat">
-        <div class="big-stat-val" id="runStatMonthKm" style="color:var(--pink)">0</div>
+        <div class="big-stat-val" id="runStatMonthKm" style="color:var(--run)">0</div>
         <div class="big-stat-label">Km ce mois</div>
       </div>
       <div class="big-stat">
-        <div class="big-stat-val" id="runStatWeekRuns" style="color:var(--pink)">0</div>
-        <div class="big-stat-label">Runs / semaine</div>
+        <div class="big-stat-val" id="runStatWeekRuns" style="color:var(--run)">0</div>
+        <div class="big-stat-label">Runs / sem.</div>
       </div>
     </div>
 
-    <!-- Pace sparkline -->
     <div class="section-title">Évolution pace</div>
-    <div class="run-spark-wrap" id="runSparkWrap">
+    <div class="run-spark-wrap">
       <div class="run-spark-label">Pace /km — 20 derniers runs</div>
       <svg class="run-spark-svg" id="runSparkSvg" viewBox="0 0 500 60" preserveAspectRatio="none"></svg>
     </div>
 
-    <!-- Zone distribution -->
     <div class="section-title">Répartition zones</div>
     <div class="zone-distrib" id="zoneDistrib"></div>
 
-    <!-- History -->
     <div class="section-title">Historique</div>
     <div id="runHistoryList"></div>
 
-    <button class="reset-btn" id="resetRuns" style="margin-top:20px;border-color:#ff4747;color:#ff4747">✕ Effacer tous les runs</button>
+    <button class="reset-btn" id="resetRuns" style="margin-top:20px;border-color:#ff2200;color:#ff2200">✕ Effacer tous les runs</button>
   </div>
 </div>
 
@@ -292,7 +281,6 @@
       </div>
     </div>
     <div class="challenges" id="challenges"></div>
-
     <div class="timer-wrap">
       <div class="timer-display" id="timerDisplay">00:00</div>
       <div class="timer-btns">
@@ -303,7 +291,6 @@
         <button class="timer-btn stop" onclick="stopTimer()">Stop</button>
       </div>
     </div>
-
     <button class="reset-btn" id="resetDefi">↺ Réinitialiser la journée</button>
   </div>
 </div>
@@ -315,56 +302,35 @@
       <div class="header-label">Suivi long terme</div>
       <h1>Stats &<span>Historique</span></h1>
     </header>
-
     <div class="section-title">Chiffres cumulés</div>
     <div class="big-stats">
-      <div class="big-stat">
-        <div class="big-stat-val" id="statDaysDone">0</div>
-        <div class="big-stat-label">Jours 100%</div>
-      </div>
-      <div class="big-stat">
-        <div class="big-stat-val" id="statBestStreak">0</div>
-        <div class="big-stat-label">Meilleur streak</div>
-      </div>
+      <div class="big-stat"><div class="big-stat-val" id="statDaysDone">0</div><div class="big-stat-label">Jours 100%</div></div>
+      <div class="big-stat"><div class="big-stat-val" id="statBestStreak">0</div><div class="big-stat-label">Meilleur streak</div></div>
     </div>
     <div class="big-stats" style="margin-bottom:0">
-      <div class="big-stat">
-        <div class="big-stat-val" id="statTotalReps">0</div>
-        <div class="big-stat-label">Reps totales</div>
-      </div>
-      <div class="big-stat">
-        <div class="big-stat-val" id="statDiscipline">—</div>
-        <div class="big-stat-label">Score discipline</div>
-      </div>
+      <div class="big-stat"><div class="big-stat-val" id="statTotalReps">0</div><div class="big-stat-label">Reps totales</div></div>
+      <div class="big-stat"><div class="big-stat-val" id="statDiscipline">—</div><div class="big-stat-label">Score discipline</div></div>
     </div>
-
     <div class="section-title">Progression charges</div>
     <div id="chargesStats"></div>
-
     <div class="section-title">Activité — 90 jours</div>
     <div class="heatmap-wrap">
-      <div class="heatmap-scroll">
-        <div class="heatmap-grid" id="heatmapGrid"></div>
-      </div>
+      <div class="heatmap-scroll"><div class="heatmap-grid" id="heatmapGrid"></div></div>
       <div class="heatmap-legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Complet</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Partiel</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--border)"></div>Rien</div>
       </div>
     </div>
-
     <div class="section-title">Par exercice</div>
     <div id="exTotals"></div>
-
     <div class="section-title">Historique daily</div>
     <div id="historyList"></div>
-
     <div class="section-title">Sauvegarde</div>
     <button class="reset-btn" onclick="exportData()" style="margin-bottom:3px;border-color:var(--pull);color:var(--pull)">📦 Sauvegarder mes données</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
     <button class="reset-btn" onclick="document.getElementById('importFile').click()" style="margin-bottom:3px;border-color:var(--green);color:var(--green)">📂 Restaurer mes données</button>
-
-    <button class="reset-btn" id="resetStats" style="margin-top:12px;border-color:#ff4747;color:#ff4747">✕ Remettre toutes les stats à zéro</button>
+    <button class="reset-btn" id="resetStats" style="margin-top:12px;border-color:#ff2200;color:#ff2200">✕ Remettre toutes les stats à zéro</button>
   </div>
 </div>
 
@@ -380,7 +346,7 @@
 <div class="modal-overlay" id="weightModal">
   <div class="modal-box weight-modal-box">
     <div class="modal-icon">🏋️</div>
-    <div class="modal-title" id="weightModalTitle" style="font-size:18px"></div>
+    <div class="modal-title" id="weightModalTitle" style="font-size:20px"></div>
     <div class="weight-modal-sets" id="weightModalSets"></div>
     <div id="weightHistory"></div>
     <div class="weight-inputs-row">
@@ -406,7 +372,7 @@
   </div>
 </div>
 
-<!-- ══ MODALE SKIP ══ -->
+<!-- ══ MODALES ══ -->
 <div class="modal-overlay" id="modalSkipOverlay">
   <div class="modal-box">
     <div class="modal-icon">😤</div>
@@ -419,7 +385,6 @@
   </div>
 </div>
 
-<!-- ══ MODALE RESTART CYCLE ══ -->
 <div class="modal-overlay" id="modalCycleOverlay">
   <div class="modal-box">
     <div class="modal-icon">🔄</div>
@@ -432,12 +397,11 @@
   </div>
 </div>
 
-<!-- ══ MODALE RESET TOTAL ══ -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
     <div class="modal-icon">⚠️</div>
     <div class="modal-title">Tout remettre à zéro ?</div>
-    <div class="modal-sub">Cette action supprime le cycle, le défi, le streak, les charges et tout l'historique de stats. Irréversible.</div>
+    <div class="modal-sub">Cette action supprime le cycle, le défi, le streak, les charges et tout l'historique. Irréversible.</div>
     <div class="modal-btns">
       <button class="modal-btn cancel" id="modalCancel">Annuler</button>
       <button class="modal-btn confirm" id="modalConfirm">Oui, tout reset</button>
@@ -445,7 +409,6 @@
   </div>
 </div>
 
-<!-- ══ MODALE RESET STATS ══ -->
 <div class="modal-overlay" id="modalStatsOverlay">
   <div class="modal-box">
     <div class="modal-icon">📊</div>
@@ -458,7 +421,6 @@
   </div>
 </div>
 
-<!-- ══ MODALE RESET RUNS ══ -->
 <div class="modal-overlay" id="modalRunsOverlay">
   <div class="modal-box">
     <div class="modal-icon">🏃</div>
@@ -474,7 +436,7 @@
 <!-- ══ NAV ══ -->
 <nav class="bottom-nav">
   <button class="nav-btn active" id="btn-home"      onclick="switchTab('home')">     <span class="nav-icon">🏠</span>Home</button>
-  <button class="nav-btn"        id="btn-programme" onclick="switchTab('programme')"><span class="nav-icon">📋</span>Programme</button>
+  <button class="nav-btn"        id="btn-programme" onclick="switchTab('programme')"><span class="nav-icon">📋</span>Prog</button>
   <button class="nav-btn"        id="btn-run"       onclick="switchTab('run')">      <span class="nav-icon">🏃</span>Run</button>
   <button class="nav-btn"        id="btn-defi"      onclick="switchTab('defi')">     <span class="nav-icon">🔥</span>Défi</button>
   <button class="nav-btn"        id="btn-stats"     onclick="switchTab('stats')">    <span class="nav-icon">📊</span>Stats</button>
